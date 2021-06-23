@@ -103,4 +103,5 @@ rework getclass
                 Applied patch of Victor Engmark:
                   Description: fixes overzealous input checking
                   Netmask /0 is perfectly fine, with this patch it's possible to use it.
-
+                Applied patch by Luc
+                  Removed network classes. CIDR is married and has two kids by now.

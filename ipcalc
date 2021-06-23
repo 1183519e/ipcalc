@@ -24,14 +24,11 @@ use bignum;
 
 my $version = '0.5';
 
-my @class   = qw (0 8 16 24 4 5 5);
-
 my $quads_color = "\033[34m"; # dotted quads, blue
 my $norml_color = "\033[m";   # normal, black
 #my $binry_color = "\033[1m\033[46m\033[37m"; # binary, yellow
 my $binry_color = "\033[33m"; # binary, yellow
 my $mask_color = "\033[31m"; # netmask, red
-my $class_color = "\033[35m"; # classbits, magenta
 my $subnt_color = "\033[0m\033[32m"; # subnet bits, green
 my $error_color = "\033[31m";
 my $sfont  = "";
@@ -94,7 +91,6 @@ sub main
       $norml_color = '';
       $binry_color = '';
       $mask_color = '';
-      $class_color = '';
       $subnt_color = '';
       $sfont  = '';
    }
@@ -104,7 +100,6 @@ sub main
       $norml_color = '<font color="#000000">';
       $binry_color = '<font color="#909090">';
       $mask_color = '<font color="#ff0000">';
-      $class_color = '<font color="#009900">';
       $subnt_color = '<font color="#663366">';
       $sfont  = '</font>';
       $break  = "<br>";
@@ -326,24 +321,6 @@ sub subnets
 }
 
 
-sub getclass {
-   my $network = shift;
-   my $numeric = shift;
-   my $class = 1;
-#   print "n $network bit ". (1 << (32-$class)) . " & " . 
-   while (($network & (1 << (32-$class))) == (1 << (32-$class)) ) {
-      $class++;
-      if ($class > 5) {
-	 return "invalid";
-      }
-   }
-   if ($numeric) {
-      return $class[$class]; 
-   } else {
-      return chr($class+64);
-   }
-}
-
 sub printnet {
     my ($network,$mask1,$mask2) = @_;
     my $hmin;
@@ -443,19 +420,6 @@ sub get_description
    my $mask    = shift;
    my @description;
    my $field;
-   # class
-   if ($opt_color || $opt_html) {
-      $field = set_color($class_color) . "Class " . getclass($network);
-      if ($opt_html) {
-         $field .= '</font>';
-      }
-      $field .= set_color($norml_color);
-      push @description, $field
-#      push @description, set_color($class_color) . "Class " . 
-#                         getclass($network) . set_color($norml_color);
-   } else {
-      push @description, "Class " . getclass($network);
-   }
    # netblock
    my ($netblock_txt,$netblock_url) = split ",",netblock($network,$mask);
    if (defined $netblock_txt) {
@@ -496,11 +460,9 @@ sub printline
       $additional_info = " = $mask1";
    }
    if ($label eq 'Network') {
-      $classbitcolor_on = 1;
       $additional_info = "/$mask1";
    }
    if ($label eq 'Hostroute' && $mask1 == 32) {
-      $classbitcolor_on = 1;
    }
    
    html("<tr>\n");   
@@ -538,11 +500,7 @@ sub printline
          $bit_color = set_color($mask_color);
       }
       
-      if ($classbitcolor_on) {
-         $line .= set_color($class_color);
-      } else {
-         $line .= set_color($bit_color);
-      }
+      $line .= set_color($bit_color);
       for (my $i=1;$i<33;$i++)
       {
          $bit = 0;
@@ -715,7 +673,6 @@ sub getopts
    # --help 
    # -n --nocolor
    # -v --version
-   # -c --class print natural class
    # -s --split
    # -b --nobinary
    # -d --deaggregate  
@@ -820,9 +777,6 @@ sub getopts
 	}
 	elsif ($opt eq 'b' || $opt eq 'nobinary') {
 	   $opt_print_bits = 0;
-	}
-	elsif ($opt eq 'c' || $opt eq 'class') {
-	   $opt_print_only_class =  1;
 	}
 	elsif ($opt eq 'r' || $opt eq 'range') {
            $opt_deaggregate =  1;
@@ -1295,7 +1249,6 @@ easy-to-understand binary values.
  -n --nocolor  Don't display ANSI color codes.
  -c --color    Display ANSI color codes (default).
  -b --nobinary Suppress the bitwise output.
- -c --class    Just print bit-count-mask of given address.
  -h --html     Display results as HTML (not finished in this version).
  -v --version  Print Version.
  -s --split n1 n2 n3
@@ -1338,8 +1291,6 @@ it are the network part of the address, the bits after it are the host
 part. You can see two simple facts: In a network address all host bits
 are zero, in a broadcast address they are all set.
 
-The class of your network is determined by its first bits.
-
 If your network is a private internet according to RFC 1918 this is
 remarked. When displaying subnets the new bits in the network part of
 the netmask are marked in a different color.
@@ -1373,6 +1324,7 @@ Torgen Foertsch
 Edward
 Nick Clifford
 Victor Engmark
+Luc
 
 EOF
 usage();
